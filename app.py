@@ -8,7 +8,36 @@ def get_db():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
     return conn
+@app.route("/coordinator")
+def coordinator():
 
+    if "role" not in session or session["role"] != "coordinator":
+        return redirect("/")
+
+    conn = get_db()
+    students = conn.execute("SELECT * FROM students").fetchall()
+    conn.close()
+
+    return render_template("coordinator.html", students=students)
+
+@app.route("/update/<int:id>", methods=["POST"])
+def update_student(id):
+
+    if "role" not in session or session["role"] != "coordinator":
+        return redirect("/")
+
+    cgpa = request.form["cgpa"]
+    attendance = request.form["attendance"]
+
+    conn = get_db()
+    conn.execute(
+        "UPDATE students SET cgpa=?, attendance=? WHERE id=?",
+        (cgpa, attendance, id)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect("/coordinator")
 
 # Login Route
 @app.route("/", methods=["GET", "POST"])
@@ -29,6 +58,9 @@ def login():
 
             if user["role"] == "admin":
                 return redirect("/admin")
+            elif user["role"] == "coordinator":
+                return redirect("/coordinator")
+
         else:
             return "Invalid Credentials"
 

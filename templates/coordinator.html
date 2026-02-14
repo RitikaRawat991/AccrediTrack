@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coordinator Dashboard</title>
+</head>
+<body>
+
+<h2>Coordinator Dashboard</h2>
+
+<a href="/logout">Logout</a>
+
+<hr>
+
+<h3>Student Records</h3>
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Roll</th>
+        <th>Dept</th>
+        <th>Sem</th>
+        <th>CGPA</th>
+        <th>Attendance</th>
+        <th>Update</th>
+    </tr>
+
+    {% for student in students %}
+    <tr>
+        <form method="POST" action="/update/{{ student['id'] }}">
+            <td>{{ student["name"] }}</td>
+            <td>{{ student["roll_no"] }}</td>
+            <td>{{ student["department"] }}</td>
+            <td>{{ student["semester"] }}</td>
+            <td>
+                <input type="number" step="0.01" name="cgpa" value="{{ student['cgpa'] }}" required>
+            </td>
+            <td>
+                <input type="number" step="0.01" name="attendance" value="{{ student['attendance'] }}" required>
+            </td>
+            <td>
+                <button type="submit">Update</button>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
