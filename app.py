@@ -37,6 +37,9 @@ def login():
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
+
+    if "role" not in session or session["role"] != "admin":
+        return redirect("/")
     if request.method == "POST":
         name = request.form["name"]
         roll = request.form["roll"]
