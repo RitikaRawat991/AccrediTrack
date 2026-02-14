@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 
@@ -11,8 +10,7 @@ def get_db():
     return conn
 
 
-# 🔐 Login Route
-@app.route("/", methods=["GET", "POST"])
+# Login Route
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -37,10 +35,8 @@ def login():
     return render_template("login.html")
 
 
-
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
-
     if request.method == "POST":
         name = request.form["name"]
         roll = request.form["roll"]
@@ -64,80 +60,14 @@ def admin():
     return render_template("admin.html", students=students)
 
 
-
-
-# 👇 SABSE LAST ME
-if __name__ == "__main__":
-    app.run(debug=True)
-=======
-from flask import Flask, render_template, request, redirect, session
-import sqlite3
-
-app = Flask(__name__)
-app.secret_key = "naac_secret"
-
-def get_db():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-# 🔐 Login Route
-@app.route("/", methods=["GET", "POST"])
-@app.route("/", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = get_db()
-        user = conn.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
-            (username, password)
-        ).fetchone()
-        conn.close()
-
-        if user:
-            session["role"] = user["role"]
-
-            if user["role"] == "admin":
-                return redirect("/admin")
-        else:
-            return "Invalid Credentials"
-
-    return render_template("login.html")
-
-
-
-@app.route("/admin", methods=["GET", "POST"])
-def admin():
-
-    if request.method == "POST":
-        name = request.form["name"]
-        roll = request.form["roll"]
-        dept = request.form["department"]
-        sem = request.form["semester"]
-        cgpa = request.form["cgpa"]
-        attendance = request.form["attendance"]
-
-        conn = get_db()
-        conn.execute(
-            "INSERT INTO students (name, roll_no, department, semester, cgpa, attendance) VALUES (?, ?, ?, ?, ?, ?)",
-            (name, roll, dept, sem, cgpa, attendance)
-        )
-        conn.commit()
-        conn.close()
-
+@app.route("/delete/<int:id>")
+def delete_student(id):
     conn = get_db()
-    students = conn.execute("SELECT * FROM students").fetchall()
+    conn.execute("DELETE FROM students WHERE id=?", (id,))
+    conn.commit()
     conn.close()
-
-    return render_template("admin.html", students=students)
-
+    return redirect("/admin")
 
 
-
-# 👇 SABSE LAST ME
 if __name__ == "__main__":
     app.run(debug=True)
->>>>>>> 98a7ba8353e79ba9a9b78b4df80b59e944b2a725
