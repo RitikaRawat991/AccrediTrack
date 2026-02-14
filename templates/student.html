@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+</head>
+<body>
+
+<h2>Student Dashboard</h2>
+
+<a href="/logout">Logout</a>
+
+<hr>
+
+<h3>Upload Certificate</h3>
+
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="certificate" required>
+    <button type="submit">Upload</button>
+</form>
+
+<hr>
+
+<h3>My Certificates</h3>
+
+<table border="1">
+    <tr>
+        <th>File Name</th>
+        <th>Status</th>
+    </tr>
+
+    {% for cert in certificates %}
+    <tr>
+        <td>{{ cert["file_name"] }}</td>
+        <td>{{ cert["status"] }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+</body>
+</html>
