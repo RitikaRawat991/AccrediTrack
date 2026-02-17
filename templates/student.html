@@ -7,6 +7,9 @@
 
 <h2>Student Dashboard</h2>
 
+<p><strong>Username:</strong> {{ session["username"] }}</p>
+<p><strong>Section:</strong> {{ session["section"] }}</p>
+
 <a href="/logout">Logout</a>
 
 <hr>
@@ -31,10 +34,17 @@
     {% for cert in certificates %}
     <tr>
         <td>{{ cert["file_name"] }}</td>
-        <td>{{ cert["status"] }}</td>
+        <td>
+            {% if cert["status"] == "Pending" %}
+                ⏳ Pending
+            {% elif cert["status"] == "Approved" %}
+                ✅ Approved
+            {% else %}
+                ❌ Rejected
+            {% endif %}
+        </td>
     </tr>
     {% endfor %}
-
 </table>
 
 </body>

@@ -6,7 +6,7 @@
 <body>
 
 <h2>Coordinator Dashboard</h2>
-
+<p>Section: {{ session["section"] }}</p>
 <a href="/logout">Logout</a>
 
 <hr>
@@ -14,41 +14,55 @@
 <h3>Student Records</h3>
 
 <table border="1">
-    <tr>
-        <th>Name</th>
-        <th>Roll</th>
-        <th>Dept</th>
-        <th>Sem</th>
-        <th>CGPA</th>
-        <th>Attendance</th>
-        <th>Update</th>
-    </tr>
+<tr>
+    <th>Name</th>
+    <th>Roll</th>
+    <th>Department</th>
+    <th>Semester</th>
+    <th>CGPA</th>
+    <th>Attendance</th>
+    <th>Update</th>
+</tr>
 
-    {% for student in students %}
-    <tr>
-        <form method="POST" action="/update/{{ student['id'] }}">
-            <td>{{ student["name"] }}</td>
-            <td>{{ student["roll_no"] }}</td>
-            <td>{{ student["department"] }}</td>
-            <td>{{ student["semester"] }}</td>
-            <td>
-                <input type="number" step="0.01" name="cgpa" value="{{ student['cgpa'] }}" required>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="attendance" value="{{ student['attendance'] }}" required>
-            </td>
-            <td>
-                <button type="submit">Update</button>
-            </td>
-        </form>
-    </tr>
-    {% endfor %}
+{% for student in students %}
+<form method="POST" action="/update_student/{{ student['id'] }}">
+<tr>
+    <td>{{ student["name"] }}</td>
+    <td>{{ student["roll_no"] }}</td>
+    <td>{{ student["department"] }}</td>
+
+    <td>
+        <input type="number" name="semester"
+               value="{{ student['semester'] or '' }}" required>
+    </td>
+
+    <td>
+        <input type="number" step="0.01" name="cgpa"
+               value="{{ student['cgpa'] or '' }}" required>
+    </td>
+
+    <td>
+        <input type="number" step="0.01" name="attendance"
+               value="{{ student['attendance'] or '' }}" required>
+    </td>
+
+    <td>
+        <button type="submit">Update</button>
+    </td>
+</tr>
+</form>
+{% endfor %}
 </table>
+
+<hr>
+
 <h2>Certificate Validation</h2>
 
 <table border="1">
 <tr>
     <th>Student</th>
+    <th>Roll</th>
+    <th>Section</th>
     <th>File</th>
     <th>Status</th>
     <th>Action</th>
@@ -57,16 +71,22 @@
 {% for cert in certificates %}
 <tr>
     <td>{{ cert["student_name"] }}</td>
+    <td>{{ cert["roll_no"] }}</td>
+    <td>{{ cert["section"] }}</td>
     <td>{{ cert["file_name"] }}</td>
     <td>{{ cert["status"] }}</td>
     <td>
-        <a href="/approve/{{ cert['id'] }}">Approve</a>
-        <a href="/reject/{{ cert['id'] }}">Reject</a>
+        {% if cert["status"] == "Pending" %}
+            <a href="/approve/{{ cert['id'] }}">Approve</a>
+            |
+            <a href="/reject/{{ cert['id'] }}">Reject</a>
+        {% else %}
+            {{ cert["status"] }}
+        {% endif %}
     </td>
 </tr>
 {% endfor %}
 </table>
-
 
 </body>
 </html>
