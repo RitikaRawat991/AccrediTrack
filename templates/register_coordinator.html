@@ -7,11 +7,7 @@
 
     <h2>Coordinator Registration</h2>
 
-    <p style="color:gray;">
-        Register as a coordinator. Your account will require admin approval.
-    </p>
-
-    <form method="POST">
+    <form method="POST" action="/register_coordinator">
 
         <input type="text" name="username" placeholder="Username" required>
         <br><br>
@@ -19,12 +15,16 @@
         <input type="password" name="password" placeholder="Password" required>
         <br><br>
 
+        <input type="text" name="name" placeholder="Name" required>
+        <br><br>
+        <input type="text" name="department" placeholder="Department" required>
+        <br><br>
+
         <button type="submit">Register</button>
 
     </form>
 
     <br>
-
     <a href="/">Back to Login</a>
 
 </body>

@@ -1,111 +1,305 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student Portfolio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAAC Portal — Student Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #0f1f3d; --accent: #c8a84b; --accent-light: #e8c96d;
+            --white: #ffffff; --gray: #8a8f9e;
+            --border: rgba(255,255,255,0.08); --card-bg: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+            background: rgba(10,18,35,0.95); border-right: 1px solid var(--border);
+            padding: 28px 20px; display: flex; flex-direction: column;
+            backdrop-filter: blur(20px); z-index: 100;
+        }
+        .sidebar-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 16px; }
+        .logo-sub { font-size: 10px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+
+        .profile-mini {
+            text-align: center; margin-bottom: 28px; padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .profile-avatar {
+            width: 72px; height: 72px; border-radius: 50%;
+            border: 2px solid var(--accent); margin: 0 auto 12px;
+            object-fit: cover; display: block;
+        }
+        .profile-avatar-placeholder {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: rgba(200,168,75,0.1); border: 2px solid rgba(200,168,75,0.3);
+            margin: 0 auto 12px; display: flex; align-items: center;
+            justify-content: center; font-size: 28px;
+        }
+        .profile-name { font-weight: 600; font-size: 15px; }
+        .profile-roll { font-size: 12px; color: var(--gray); margin-top: 2px; }
+        .profile-section {
+            display: inline-block; margin-top: 8px; padding: 3px 12px;
+            background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.25);
+            border-radius: 20px; font-size: 11px; color: var(--accent); font-weight: 600;
+        }
+
+        .nav-label { font-size: 10px; font-weight: 600; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; padding-left: 12px; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 500; margin-bottom: 2px; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(200,168,75,0.1); color: var(--accent); }
+        .sidebar-bottom { margin-top: auto; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: rgba(255,255,255,0.4); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: rgba(192,57,43,0.15); color: #e74c3c; }
+
+        .main { margin-left: 240px; padding: 36px; min-height: 100vh; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 28px; }
+        .page-sub { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+        .section { margin-bottom: 32px; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .info-item { }
+        .info-label { font-size: 11px; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .info-value { font-size: 15px; font-weight: 600; }
+        .info-value.highlight { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 20px; }
+
+        .alert-warning {
+            padding: 14px 18px; border-radius: 12px;
+            background: rgba(200,120,30,0.1); border: 1px solid rgba(200,120,30,0.25);
+            color: #f0a040; font-size: 14px;
+        }
+
+        .upload-area {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .file-input-wrapper {
+            position: relative;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+        }
+        .file-input-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 16px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+            color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .file-input-label:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-upload {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border: none; border-radius: 10px; color: var(--navy);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+            font-weight: 700; cursor: pointer; transition: transform 0.15s;
+        }
+        .btn-upload:hover { transform: translateY(-1px); }
+
+        .photo-preview { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(200,168,75,0.3); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        tr:last-child td { border-bottom: none; }
+        .empty-row td { color: var(--gray); text-align: center; padding: 24px; }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-pending { background: rgba(200,168,75,0.15); color: var(--accent); border: 1px solid rgba(200,168,75,0.3); }
+        .badge-approved { background: rgba(46,125,82,0.15); color: #6fcf97; border: 1px solid rgba(46,125,82,0.3); }
+        .badge-rejected { background: rgba(192,57,43,0.15); color: #e57373; border: 1px solid rgba(192,57,43,0.3); }
+
+        textarea {
+            width: 100%; padding: 14px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: var(--white);
+            font-family: 'DM Sans', sans-serif; font-size: 14px;
+            outline: none; resize: vertical; min-height: 120px;
+            transition: border-color 0.2s; margin-bottom: 12px;
+        }
+        textarea:focus { border-color: var(--accent); }
+        textarea::placeholder { color: rgba(255,255,255,0.25); }
+    </style>
 </head>
 <body>
 
-<h2>Student Portfolio</h2>
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div>
+            <div class="logo-text">NAAC Portal</div>
+            <div class="logo-sub">Student</div>
+        </div>
+    </div>
 
-<a href="/logout">Logout</a>
-
-<hr>
-
-{% if student %}
-
-<p><strong>University:</strong> Graphic Era Hill University</p>
-<p><strong>Name:</strong> {{ student["name"] }}</p>
-<p><strong>Roll Number:</strong> {{ student["roll_no"] }}</p>
-
-{% if student["section"] %}
-    <p><strong>Section:</strong> {{ student["section"] }}</p>
-{% else %}
-    <p style="color:red;"><strong>Section not assigned yet. Please wait for admin approval.</strong></p>
-{% endif %}
-
-<p><strong>CGPA:</strong> {{ student["cgpa"] }}</p>
-
-<hr>
-
-<!-- PROFILE PHOTO -->
-<h3>Profile Photo</h3>
-
-{% if student["profile_pic"] %}
-    <img src="/uploads/{{ student['profile_pic'] }}" width="150"><br><br>
-{% else %}
-    <p>No profile photo uploaded.</p>
-{% endif %}
-
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="profile_pic">
-    <button type="submit">Upload Photo</button>
-</form>
-
-<hr>
-
-<!-- CERTIFICATE UPLOAD -->
-<h3>Upload Certificate</h3>
-
-{% if student["section"] %}
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="certificate" required>
-    <button type="submit">Upload</button>
-</form>
-{% else %}
-<p style="color:red;">You cannot upload certificates until section is assigned.</p>
-{% endif %}
-
-<hr>
-
-<!-- CERTIFICATE LIST -->
-<h3>My Certificates</h3>
-
-<table border="1">
-    <tr>
-        <th>File Name</th>
-        <th>Status</th>
-    </tr>
-
-    {% if certificates %}
-        {% for cert in certificates %}
-        <tr>
-            <td>{{ cert["file_name"] }}</td>
-            <td>
-                {% if cert["status"] == "Pending" %}
-                    ⏳ Pending
-                {% elif cert["status"] == "Approved" %}
-                    ✅ Approved
-                {% elif cert["status"] == "Rejected" %}
-                    ❌ Rejected
-                {% else %}
-                    {{ cert["status"] }}
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    {% else %}
-        <tr>
-            <td colspan="2">No certificates uploaded yet.</td>
-        </tr>
+    {% if student %}
+    <div class="profile-mini">
+        {% if student["profile_pic"] %}
+            <img src="/uploads/{{ student['profile_pic'] }}" class="profile-avatar" alt="Profile">
+        {% else %}
+            <div class="profile-avatar-placeholder">👤</div>
+        {% endif %}
+        <div class="profile-name">{{ student["name"] }}</div>
+        <div class="profile-roll">{{ student["roll_no"] }}</div>
+        {% if student["section"] %}
+            <div class="profile-section">Section {{ student["section"] }}</div>
+        {% endif %}
+    </div>
     {% endif %}
-</table>
 
-<hr>
+    <div class="nav-label">Navigation</div>
+    <a href="#info" class="nav-link">📋 My Info</a>
+    <a href="#photo" class="nav-link">📷 Profile Photo</a>
+    <a href="#certificates" class="nav-link">📜 Certificates</a>
+    <a href="#achievements" class="nav-link">🏆 Achievements</a>
 
-<!-- ACHIEVEMENTS SECTION -->
-<h3>Achievements</h3>
+    <div class="sidebar-bottom">
+        <a href="/logout" class="logout-btn">🚪 Logout</a>
+    </div>
+</div>
 
-<form method="POST">
-    <textarea name="achievements" rows="5" cols="50">
-{{ student["achievements"] or "" }}
-    </textarea>
-    <br><br>
-    <button type="submit">Save Achievements</button>
-</form>
+<div class="main">
+    {% if student %}
+    <div class="page-header">
+        <div class="page-title">Student Portfolio</div>
+        <div class="page-sub">Graphic Era Hill University</div>
+    </div>
 
-{% else %}
-<p>Student data not found.</p>
-{% endif %}
+    <!-- INFO -->
+    <div class="section" id="info">
+        <div class="section-title">Academic Details</div>
+        <div class="card">
+            {% if not student["section"] %}
+            <div class="alert-warning" style="margin-bottom: 20px;">
+                ⚠️ Section not assigned yet. Please wait for admin approval before uploading certificates.
+            </div>
+            {% endif %}
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ student["name"] }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Roll Number</div>
+                    <div class="info-value">{{ student["roll_no"] }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Department</div>
+                    <div class="info-value">{{ student["department"] }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Section</div>
+                    <div class="info-value">{{ student["section"] or "—" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Semester</div>
+                    <div class="info-value">{{ student["semester"] }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">CGPA</div>
+                    <div class="info-value highlight">{{ student["cgpa"] }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Attendance</div>
+                    <div class="info-value highlight">{{ student["attendance"] }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE PHOTO -->
+    <div class="section" id="photo">
+        <div class="section-title">Profile Photo</div>
+        <div class="card">
+            <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                {% if student["profile_pic"] %}
+                    <img src="/uploads/{{ student['profile_pic'] }}" class="photo-preview" alt="Profile">
+                {% else %}
+                    <div style="width:120px;height:120px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:36px;">👤</div>
+                {% endif %}
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="upload-area">
+                        <div class="file-input-wrapper">
+                            <div class="file-input-label">📁 Choose Photo</div>
+                            <input type="file" name="profile_pic" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn-upload">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CERTIFICATES -->
+    <div class="section" id="certificates">
+        <div class="section-title">Certificates</div>
+        <div class="card">
+            {% if student["section"] %}
+            <form method="POST" enctype="multipart/form-data" style="margin-bottom: 20px;">
+                <div class="upload-area">
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label">📄 Choose Certificate</div>
+                        <input type="file" name="certificate" required>
+                    </div>
+                    <button type="submit" class="btn-upload">Upload Certificate</button>
+                </div>
+            </form>
+            <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 16px;">
+            {% endif %}
+
+            <table>
+                <thead>
+                    <tr><th>File Name</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% if certificates %}
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>📄 {{ cert["file_name"] }}</td>
+                            <td>
+                                {% if cert["status"] == "Pending" %}
+                                    <span class="badge badge-pending">⏳ Pending</span>
+                                {% elif cert["status"] == "Approved" %}
+                                    <span class="badge badge-approved">✅ Approved</span>
+                                {% else %}
+                                    <span class="badge badge-rejected">❌ Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="empty-row"><td colspan="2">No certificates uploaded yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="section" id="achievements">
+        <div class="section-title">Achievements</div>
+        <div class="card">
+            <form method="POST">
+                <textarea name="achievements" placeholder="Describe your achievements, extracurriculars, awards...">{{ student["achievements"] or "" }}</textarea>
+                <button type="submit" class="btn-upload">Save Achievements</button>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <div style="color: var(--gray); text-align: center; padding: 80px;">Student data not found.</div>
+    {% endif %}
+</div>
 
 </body>
 </html>

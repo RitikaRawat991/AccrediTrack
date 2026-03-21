@@ -3,7 +3,7 @@
 <head>
     <title>Student Registration</title>
 </head>
-<body>
+<body style="font-family: Arial; text-align:center;">
 
     <h2>Student Registration</h2>
 
@@ -11,7 +11,16 @@
         After registration, your account will require admin approval.
     </p>
 
-    <form method="POST">
+    <!-- Flash Message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color:green;">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" style="display:inline-block; text-align:left;">
 
         <input type="text" name="name" placeholder="Full Name" required>
         <br><br>
@@ -29,7 +38,7 @@
 
     </form>
 
-    <br>
+    <br><br>
     <a href="/">Back to Login</a>
 
 </body>

@@ -7,9 +7,13 @@
 
     <h2>NAAC Portal Login</h2>
 
-    {% if error %}
-        <p style="color:red;"><strong>{{ error }}</strong></p>
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p style="color: {% if category == 'success' %}green{% else %}red{% endif %};"><strong>{{ message }}</strong></p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form method="POST">
 
@@ -30,7 +34,7 @@
     <p>If you are new, register here:</p>
 
     <p>
-        <a href="/register">Register as Coordinator</a>
+        <a href="/register_coordinator">Register as Coordinator</a>
     </p>
 
     <p>
