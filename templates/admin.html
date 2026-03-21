@@ -10,7 +10,8 @@
 
 <hr>
 
-<h3>Add Student</h3>
+<h3>Add Student Manually</h3>
+
 <form method="POST">
     <input type="text" name="name" placeholder="Name" required><br><br>
     <input type="text" name="roll" placeholder="Roll No" required><br><br>
@@ -23,30 +24,41 @@
 
 <hr>
 
-<h3>Student List</h3>
+<h3>All Students</h3>
 
 <table border="1">
 <tr>
     <th>Name</th>
     <th>Roll</th>
-    <th>Dept</th>
-    <th>Sem</th>
+    <th>Department</th>
+    <th>Section</th>
+    <th>Semester</th>
     <th>CGPA</th>
     <th>Attendance</th>
     <th>Action</th>
 </tr>
 
-{% for student in students %}
+{% if students %}
+    {% for student in students %}
+    <tr>
+        <td>{{ student["name"] }}</td>
+        <td>{{ student["roll_no"] }}</td>
+        <td>{{ student["department"] }}</td>
+        <td>{{ student["section"] }}</td>
+        <td>{{ student["semester"] }}</td>
+        <td>{{ student["cgpa"] }}</td>
+        <td>{{ student["attendance"] }}</td>
+        <td>
+            <a href="/delete/{{ student['id'] }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
 <tr>
-    <td>{{ student["name"] }}</td>
-    <td>{{ student["roll_no"] }}</td>
-    <td>{{ student["department"] }}</td>
-    <td>{{ student["semester"] }}</td>
-    <td>{{ student["cgpa"] }}</td>
-    <td>{{ student["attendance"] }}</td>
-    <td><a href="/delete/{{ student['id'] }}">Delete</a></td>
+    <td colspan="8">No students available.</td>
 </tr>
-{% endfor %}
+{% endif %}
+
 </table>
 
 <hr>
@@ -60,21 +72,28 @@
     <th>Action</th>
 </tr>
 
-{% for user in pending %}
-<form method="POST" action="/approve_coordinator/{{ user['id'] }}">
+{% if pending %}
+    {% for user in pending %}
+    <tr>
+        <form method="POST" action="/approve_coordinator/{{ user['id'] }}">
+            <td>{{ user["username"] }}</td>
+            <td>
+                <input type="text" name="section" placeholder="A/B/C" required>
+            </td>
+            <td>
+                <button type="submit">Approve</button>
+                |
+                <a href="/reject_coordinator/{{ user['id'] }}">Reject</a>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+{% else %}
 <tr>
-    <td>{{ user["username"] }}</td>
-    <td>
-        <input type="text" name="section" placeholder="A/B/C" required>
-    </td>
-    <td>
-        <button type="submit">Approve</button>
-        |
-        <a href="/reject_coordinator/{{ user['id'] }}">Reject</a>
-    </td>
+    <td colspan="3">No pending coordinators.</td>
 </tr>
-</form>
-{% endfor %}
+{% endif %}
+
 </table>
 
 <hr>
@@ -83,26 +102,33 @@
 
 <table border="1">
 <tr>
-    <th>Username</th>
+    <th>Roll (Username)</th>
     <th>Assign Section</th>
     <th>Action</th>
 </tr>
 
-{% for user in pending_students %}
-<form method="POST" action="/approve_student/{{ user['id'] }}">
+{% if pending_students %}
+    {% for user in pending_students %}
+    <tr>
+        <form method="POST" action="/approve_student/{{ user['id'] }}">
+            <td>{{ user["username"] }}</td>
+            <td>
+                <input type="text" name="section" placeholder="A/B/C" required>
+            </td>
+            <td>
+                <button type="submit">Approve</button>
+                |
+                <a href="/reject_student/{{ user['id'] }}">Reject</a>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+{% else %}
 <tr>
-    <td>{{ user["username"] }}</td>
-    <td>
-        <input type="text" name="section" placeholder="A/B/C" required>
-    </td>
-    <td>
-        <button type="submit">Approve</button>
-        |
-        <a href="/reject_coordinator/{{ user['id'] }}">Reject</a>
-    </td>
+    <td colspan="3">No pending students.</td>
 </tr>
-</form>
-{% endfor %}
+{% endif %}
+
 </table>
 
 </body>

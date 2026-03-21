@@ -1,28 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Dashboard</title>
+    <title>Student Portfolio</title>
 </head>
 <body>
 
-<h2>Student Dashboard</h2>
-
-<p><strong>Username:</strong> {{ session["username"] }}</p>
-<p><strong>Section:</strong> {{ session["section"] }}</p>
+<h2>Student Portfolio</h2>
 
 <a href="/logout">Logout</a>
 
 <hr>
 
-<h3>Upload Certificate</h3>
+{% if student %}
+
+<p><strong>University:</strong> Graphic Era Hill University</p>
+<p><strong>Name:</strong> {{ student["name"] }}</p>
+<p><strong>Roll Number:</strong> {{ student["roll_no"] }}</p>
+
+{% if student["section"] %}
+    <p><strong>Section:</strong> {{ student["section"] }}</p>
+{% else %}
+    <p style="color:red;"><strong>Section not assigned yet. Please wait for admin approval.</strong></p>
+{% endif %}
+
+<p><strong>CGPA:</strong> {{ student["cgpa"] }}</p>
+
+<hr>
+
+<!-- PROFILE PHOTO -->
+<h3>Profile Photo</h3>
+
+{% if student["profile_pic"] %}
+    <img src="/uploads/{{ student['profile_pic'] }}" width="150"><br><br>
+{% else %}
+    <p>No profile photo uploaded.</p>
+{% endif %}
 
 <form method="POST" enctype="multipart/form-data">
-    <input type="file" name="certificate" required>
-    <button type="submit">Upload</button>
+    <input type="file" name="profile_pic">
+    <button type="submit">Upload Photo</button>
 </form>
 
 <hr>
 
+<!-- CERTIFICATE UPLOAD -->
+<h3>Upload Certificate</h3>
+
+{% if student["section"] %}
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="certificate" required>
+    <button type="submit">Upload</button>
+</form>
+{% else %}
+<p style="color:red;">You cannot upload certificates until section is assigned.</p>
+{% endif %}
+
+<hr>
+
+<!-- CERTIFICATE LIST -->
 <h3>My Certificates</h3>
 
 <table border="1">
@@ -31,21 +66,46 @@
         <th>Status</th>
     </tr>
 
-    {% for cert in certificates %}
-    <tr>
-        <td>{{ cert["file_name"] }}</td>
-        <td>
-            {% if cert["status"] == "Pending" %}
-                ⏳ Pending
-            {% elif cert["status"] == "Approved" %}
-                ✅ Approved
-            {% else %}
-                ❌ Rejected
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
+    {% if certificates %}
+        {% for cert in certificates %}
+        <tr>
+            <td>{{ cert["file_name"] }}</td>
+            <td>
+                {% if cert["status"] == "Pending" %}
+                    ⏳ Pending
+                {% elif cert["status"] == "Approved" %}
+                    ✅ Approved
+                {% elif cert["status"] == "Rejected" %}
+                    ❌ Rejected
+                {% else %}
+                    {{ cert["status"] }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="2">No certificates uploaded yet.</td>
+        </tr>
+    {% endif %}
 </table>
+
+<hr>
+
+<!-- ACHIEVEMENTS SECTION -->
+<h3>Achievements</h3>
+
+<form method="POST">
+    <textarea name="achievements" rows="5" cols="50">
+{{ student["achievements"] or "" }}
+    </textarea>
+    <br><br>
+    <button type="submit">Save Achievements</button>
+</form>
+
+{% else %}
+<p>Student data not found.</p>
+{% endif %}
 
 </body>
 </html>

@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
+from flask import send_from_directory
+
 
 app = Flask(__name__)
 app.secret_key = "naac_secret"
@@ -19,7 +21,9 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -40,8 +44,8 @@ def login():
                 return "Account not approved by admin yet."
 
             session["role"] = user["role"]
-            session["section"] = user["section"]
             session["username"] = user["username"]
+            session["section"] = user["section"]
 
             if user["role"] == "admin":
                 return redirect("/admin")
@@ -53,26 +57,6 @@ def login():
         return "Invalid Credentials"
 
     return render_template("login.html")
-
-
-# ---------------- REGISTER COORDINATOR ----------------
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        conn = get_db()
-        conn.execute(
-            "INSERT INTO users (username, password, role, approved) VALUES (?, ?, ?, ?)",
-            (username, password, "coordinator", 0)
-        )
-        conn.commit()
-        conn.close()
-
-        return "Registration submitted. Wait for admin approval."
-
-    return render_template("register.html")
 
 
 # ---------------- REGISTER STUDENT ----------------
@@ -87,7 +71,6 @@ def register_student():
 
         conn = get_db()
 
-        # username = roll
         conn.execute(
             "INSERT INTO users (username, password, role, approved) VALUES (?, ?, ?, ?)",
             (roll, password, "student", 0)
@@ -95,13 +78,13 @@ def register_student():
 
         conn.execute(
             "INSERT INTO students (name, roll_no, department, semester, cgpa, attendance, section) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (name, roll, department, 0, 0.0, 0.0, None)   # ✅ FIXED
+            (name, roll, department, 0, 0.0, 0.0, None)
         )
 
         conn.commit()
         conn.close()
 
-        return "Student registration submitted. Wait for admin approval."
+        return "Registration submitted. Wait for admin approval."
 
     return render_template("register_student.html")
 
@@ -110,16 +93,12 @@ def register_student():
 @app.route("/admin")
 def admin():
 
-    if "role" not in session or session["role"] != "admin":
+    if session.get("role") != "admin":
         return redirect("/")
 
     conn = get_db()
 
     students = conn.execute("SELECT * FROM students").fetchall()
-
-    pending_coordinators = conn.execute(
-        "SELECT * FROM users WHERE role='coordinator' AND approved=0"
-    ).fetchall()
 
     pending_students = conn.execute(
         "SELECT * FROM users WHERE role='student' AND approved=0"
@@ -129,35 +108,14 @@ def admin():
 
     return render_template("admin.html",
                            students=students,
-                           pending=pending_coordinators,
                            pending_students=pending_students)
-
-
-# ---------------- APPROVE COORDINATOR ----------------
-@app.route("/approve_coordinator/<int:id>", methods=["POST"])
-def approve_coordinator(id):
-
-    if session["role"] != "admin":
-        return redirect("/")
-
-    section = request.form["section"]
-
-    conn = get_db()
-    conn.execute(
-        "UPDATE users SET approved=1, section=? WHERE id=?",
-        (section, id)
-    )
-    conn.commit()
-    conn.close()
-
-    return redirect("/admin")
 
 
 # ---------------- APPROVE STUDENT ----------------
 @app.route("/approve_student/<int:id>", methods=["POST"])
 def approve_student(id):
 
-    if session["role"] != "admin":
+    if session.get("role") != "admin":
         return redirect("/")
 
     section = request.form["section"]
@@ -195,10 +153,10 @@ def approve_student(id):
 @app.route("/coordinator")
 def coordinator():
 
-    if session["role"] != "coordinator":
+    if session.get("role") != "coordinator":
         return redirect("/")
 
-    section = session["section"]
+    section = session.get("section")
 
     conn = get_db()
 
@@ -223,7 +181,7 @@ def coordinator():
 @app.route("/update_student/<int:id>", methods=["POST"])
 def update_student(id):
 
-    if session["role"] != "coordinator":
+    if session.get("role") != "coordinator":
         return redirect("/")
 
     semester = request.form["semester"]
@@ -242,42 +200,103 @@ def update_student(id):
 
 
 # ---------------- STUDENT DASHBOARD ----------------
+# ---------------- STUDENT DASHBOARD (PORTFOLIO) ----------------
 @app.route("/student", methods=["GET", "POST"])
 def student():
 
-    if session["role"] != "student":
+    if session.get("role") != "student":
         return redirect("/")
 
     conn = get_db()
+    roll = session.get("username")
+
+    student_data = conn.execute(
+        "SELECT * FROM students WHERE roll_no=?",
+        (roll,)
+    ).fetchone()
 
     if request.method == "POST":
-        file = request.files["certificate"]
 
-        roll = session["username"]   # ✅ FIXED (no form roll)
+        # ---------- PROFILE PHOTO ----------
+        if "profile_pic" in request.files:
+            photo = request.files["profile_pic"]
+            if photo and photo.filename != "":
+                filename = secure_filename(photo.filename)
+                photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        student_data = conn.execute(
-            "SELECT name, section FROM students WHERE roll_no=?",
-            (roll,)
-        ).fetchone()
+                conn.execute(
+                    "UPDATE students SET profile_pic=? WHERE roll_no=?",
+                    (filename, roll)
+                )
+                conn.commit()
 
-        if student_data and file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        # ---------- CERTIFICATE ----------
+        if "certificate" in request.files:
+            file = request.files["certificate"]
+
+            if student_data and student_data["section"] and file and file.filename != "":
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+                conn.execute(
+                    "INSERT INTO certificates (student_name, roll_no, section, file_name, status) VALUES (?, ?, ?, ?, ?)",
+                    (student_data["name"], roll, student_data["section"], filename, "Pending")
+                )
+                conn.commit()
+
+        # ---------- ACHIEVEMENTS ----------
+        if "achievements" in request.form:
+            achievements = request.form["achievements"]
 
             conn.execute(
-                "INSERT INTO certificates (student_name, roll_no, section, file_name, status) VALUES (?, ?, ?, ?, ?)",
-                (student_data["name"], roll, student_data["section"], filename, "Pending")
+                "UPDATE students SET achievements=? WHERE roll_no=?",
+                (achievements, roll)
             )
             conn.commit()
 
     certificates = conn.execute(
         "SELECT * FROM certificates WHERE roll_no=?",
-        (session["username"],)
+        (roll,)
     ).fetchall()
 
     conn.close()
 
-    return render_template("student.html", certificates=certificates)
+    return render_template(
+        "student.html",
+        student=student_data,
+        certificates=certificates,
+        university="Graphic Era Hill University"
+    )
+
+
+# ---------------- APPROVE CERTIFICATE ----------------
+@app.route("/approve/<int:id>")
+def approve(id):
+
+    if session.get("role") != "coordinator":
+        return redirect("/")
+
+    conn = get_db()
+    conn.execute("UPDATE certificates SET status='Approved' WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/coordinator")
+
+
+# ---------------- REJECT CERTIFICATE ----------------
+@app.route("/reject/<int:id>")
+def reject(id):
+
+    if session.get("role") != "coordinator":
+        return redirect("/")
+
+    conn = get_db()
+    conn.execute("UPDATE certificates SET status='Rejected' WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/coordinator")
 
 
 # ---------------- LOGOUT ----------------
