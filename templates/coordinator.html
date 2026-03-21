@@ -1,92 +1,211 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Coordinator Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAAC Portal — Coordinator Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #0f1f3d; --accent: #c8a84b; --accent-light: #e8c96d;
+            --white: #ffffff; --gray: #8a8f9e;
+            --border: rgba(255,255,255,0.08); --card-bg: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+            background: rgba(10,18,35,0.95); border-right: 1px solid var(--border);
+            padding: 28px 20px; display: flex; flex-direction: column;
+            backdrop-filter: blur(20px); z-index: 100;
+        }
+        .sidebar-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 16px; }
+        .logo-sub { font-size: 10px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+        .section-pill {
+            background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.25);
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 24px;
+            font-size: 12px; color: var(--gray);
+        }
+        .section-pill strong { display: block; font-size: 20px; color: var(--accent); font-family: 'Playfair Display', serif; }
+        .nav-label { font-size: 10px; font-weight: 600; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; padding-left: 12px; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 500; margin-bottom: 2px; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(200,168,75,0.1); color: var(--accent); }
+        .sidebar-bottom { margin-top: auto; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: rgba(255,255,255,0.4); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: rgba(192,57,43,0.15); color: #e74c3c; }
+
+        .main { margin-left: 240px; padding: 36px; min-height: 100vh; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 28px; }
+        .page-sub { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+        td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .empty-row td { color: var(--gray); text-align: center; padding: 32px; }
+
+        .editable-input {
+            padding: 7px 10px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+            color: var(--white); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; outline: none; width: 90px; transition: border-color 0.2s;
+        }
+        .editable-input:focus { border-color: var(--accent); }
+
+        .btn-update {
+            padding: 7px 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border: none; border-radius: 8px; color: var(--navy);
+            font-family: 'DM Sans', sans-serif; font-size: 12px;
+            font-weight: 700; cursor: pointer; transition: transform 0.15s;
+        }
+        .btn-update:hover { transform: translateY(-1px); }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-pending { background: rgba(200,168,75,0.15); color: var(--accent); border: 1px solid rgba(200,168,75,0.3); }
+        .badge-approved { background: rgba(46,125,82,0.15); color: #6fcf97; border: 1px solid rgba(46,125,82,0.3); }
+        .badge-rejected { background: rgba(192,57,43,0.15); color: #e57373; border: 1px solid rgba(192,57,43,0.3); }
+
+        .btn-approve { padding: 6px 12px; background: rgba(46,125,82,0.15); border: 1px solid rgba(46,125,82,0.3); border-radius: 8px; color: #6fcf97; font-size: 12px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-approve:hover { background: rgba(46,125,82,0.25); }
+        .btn-reject { padding: 6px 12px; background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.2); border-radius: 8px; color: #e57373; font-size: 12px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-reject:hover { background: rgba(192,57,43,0.2); }
+
+        .action-group { display: flex; gap: 6px; align-items: center; }
+
+        .file-link { color: #7eb8f7; text-decoration: none; font-size: 13px; }
+        .file-link:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
 
-<h2>Coordinator Dashboard</h2>
-<p>Section: {{ session["section"] }}</p>
-<a href="/logout">Logout</a>
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">🎓</div>
+        <div>
+            <div class="logo-text">NAAC Portal</div>
+            <div class="logo-sub">Coordinator</div>
+        </div>
+    </div>
 
-<hr>
+    <div class="section-pill">
+        My Section
+        <strong>{{ session["section"] }}</strong>
+    </div>
 
-<h3>Student Records</h3>
+    <div class="nav-label">Navigation</div>
+    <a href="#students" class="nav-link">📋 Student Records</a>
+    <a href="#certificates" class="nav-link">📜 Certificates</a>
 
-<table border="1">
-<tr>
-    <th>Name</th>
-    <th>Roll</th>
-    <th>Department</th>
-    <th>Semester</th>
-    <th>CGPA</th>
-    <th>Attendance</th>
-    <th>Update</th>
-</tr>
+    <div class="sidebar-bottom">
+        <a href="/logout" class="logout-btn">🚪 Logout</a>
+    </div>
+</div>
 
-{% for student in students %}
-<form method="POST" action="/update_student/{{ student['id'] }}">
-<tr>
-    <td>{{ student["name"] }}</td>
-    <td>{{ student["roll_no"] }}</td>
-    <td>{{ student["department"] }}</td>
+<div class="main">
+    <div class="page-header">
+        <div class="page-title">Coordinator Dashboard</div>
+        <div class="page-sub">Manage student records and validate certificates for Section {{ session["section"] }}</div>
+    </div>
 
-    <td>
-        <input type="number" name="semester"
-               value="{{ student['semester'] or '' }}" required>
-    </td>
+    <!-- STUDENT RECORDS -->
+    <div class="section" id="students">
+        <div class="section-title">Student Records</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll No</th>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>CGPA</th>
+                        <th>Attendance %</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <form method="POST" action="/update_student/{{ student['id'] }}">
+                    <tr>
+                        <td><strong>{{ student["name"] }}</strong></td>
+                        <td style="color: var(--gray);">{{ student["roll_no"] }}</td>
+                        <td>{{ student["department"] }}</td>
+                        <td><input type="number" name="semester" value="{{ student['semester'] or '' }}" class="editable-input" required></td>
+                        <td><input type="number" step="0.01" name="cgpa" value="{{ student['cgpa'] or '' }}" class="editable-input" required></td>
+                        <td><input type="number" step="0.01" name="attendance" value="{{ student['attendance'] or '' }}" class="editable-input" required></td>
+                        <td><button type="submit" class="btn-update">Update</button></td>
+                    </tr>
+                    </form>
+                    {% else %}
+                    <tr class="empty-row"><td colspan="7">No students in your section yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <td>
-        <input type="number" step="0.01" name="cgpa"
-               value="{{ student['cgpa'] or '' }}" required>
-    </td>
-
-    <td>
-        <input type="number" step="0.01" name="attendance"
-               value="{{ student['attendance'] or '' }}" required>
-    </td>
-
-    <td>
-        <button type="submit">Update</button>
-    </td>
-</tr>
-</form>
-{% endfor %}
-</table>
-
-<hr>
-
-<h2>Certificate Validation</h2>
-
-<table border="1">
-<tr>
-    <th>Student</th>
-    <th>Roll</th>
-    <th>Section</th>
-    <th>File</th>
-    <th>Status</th>
-    <th>Action</th>
-</tr>
-
-{% for cert in certificates %}
-<tr>
-    <td>{{ cert["student_name"] }}</td>
-    <td>{{ cert["roll_no"] }}</td>
-    <td>{{ cert["section"] }}</td>
-    <td>{{ cert["file_name"] }}</td>
-    <td>{{ cert["status"] }}</td>
-    <td>
-        {% if cert["status"] == "Pending" %}
-            <a href="/approve/{{ cert['id'] }}">Approve</a>
-            |
-            <a href="/reject/{{ cert['id'] }}">Reject</a>
-        {% else %}
-            {{ cert["status"] }}
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-</table>
+    <!-- CERTIFICATES -->
+    <div class="section" id="certificates">
+        <div class="section-title">Certificate Validation</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Roll No</th>
+                        <th>Section</th>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    <tr>
+                        <td><strong>{{ cert["student_name"] }}</strong></td>
+                        <td style="color: var(--gray);">{{ cert["roll_no"] }}</td>
+                        <td>{{ cert["section"] }}</td>
+                        <td><a href="/uploads/{{ cert['file_name'] }}" class="file-link" target="_blank">📄 {{ cert["file_name"] }}</a></td>
+                        <td>
+                            {% if cert["status"] == "Pending" %}
+                                <span class="badge badge-pending">⏳ Pending</span>
+                            {% elif cert["status"] == "Approved" %}
+                                <span class="badge badge-approved">✅ Approved</span>
+                            {% else %}
+                                <span class="badge badge-rejected">❌ Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cert["status"] == "Pending" %}
+                            <div class="action-group">
+                                <a href="/approve/{{ cert['id'] }}" class="btn-approve">Approve</a>
+                                <a href="/reject/{{ cert['id'] }}" class="btn-reject">Reject</a>
+                            </div>
+                            {% else %}
+                                <span style="color: var(--gray); font-size: 13px;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row"><td colspan="6">No certificates submitted yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
