@@ -154,12 +154,22 @@ def admin():
     pending_coordinators = conn.execute(
         "SELECT * FROM users WHERE role='coordinator' AND approved=0"
     ).fetchall()
+
+    # Category graph (only approved)
+    category_counts = conn.execute(
+        "SELECT category, COUNT(*) as count FROM certificates WHERE status='Approved' GROUP BY category ORDER BY count DESC"
+    ).fetchall()
+
     conn.close()
 
-    return render_template("admin.html",
-                           students=students,
-                           pending_students=pending_students,
-                           pending=pending_coordinators)
+    return render_template(
+        "admin.html",
+        students=students,
+        pending_students=pending_students,
+        pending=pending_coordinators,
+        category_counts=category_counts,
+    )
+
 
 
 @app.route("/approve_coordinator/<int:id>", methods=["POST"])
@@ -336,6 +346,39 @@ def reject(id):
     return redirect("/coordinator")
 
 
+@app.route("/delete/<int:id>")
+def delete_student(id):
+    # Admin only
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    conn = get_db()
+
+    # Delete from students table
+    conn.execute("DELETE FROM students WHERE id=?", (id,))
+
+    # Also delete corresponding user account if exists
+    # In this app, students.roll_no == users.username
+    user = conn.execute("SELECT roll_no FROM students WHERE id=?", (id,)).fetchone()
+    # Note: since we deleted above, fetch might be None. To be safe, fetch first.
+    conn.close()
+
+    # Re-implement safely with two-step: fetch roll_no first.
+    conn = get_db()
+    row = conn.execute("SELECT roll_no FROM students WHERE id=?", (id,)).fetchone()
+    if row:
+        roll_no = row["roll_no"]
+        conn.execute("DELETE FROM students WHERE id=?", (id,))
+        conn.execute("DELETE FROM users WHERE username=?", (roll_no,))
+    else:
+        # If already deleted from students, still attempt users deletion by id mapping impossible.
+        conn.execute("DELETE FROM students WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+    return redirect("/admin")
+
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -344,3 +387,4 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
