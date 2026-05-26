@@ -13,6 +13,7 @@
             --border: rgba(255,255,255,0.08); --card-bg: rgba(255,255,255,0.04);
         }
         body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+
         .sidebar {
             position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
             background: rgba(10,18,35,0.95); border-right: 1px solid var(--border);
@@ -154,32 +155,10 @@
             </table>
         </div>
     </div>
-\
+
+    <!-- CERTIFICATES -->
     <div class="section" id="certificates">
         <div class="section-title">Certificate Validation</div>
-
-        <form method="GET" style="margin: 0 0 14px 0;">
-            <div class="upload-area" style="justify-content:flex-start;">
-                <div class="file-input-wrapper">
-                    <div class="file-input-label">🔎 Filter by Category</div>
-                    <select name="category" style="padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;">
-                        <option value="">All</option>
-                        <option value="Research">Research</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Hackathon">Hackathon</option>
-                        <option value="Internship">Internship</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Cultural">Cultural</option>
-                        <option value="Certification">Certification</option>
-                        <option value="Seminar">Seminar</option>
-                        <option value="Volunteer Work">Volunteer Work</option>
-                        <option value="Training">Training</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-upload" style="padding: 10px 18px;">Apply</button>
-            </div>
-        </form>
-
         <div class="card">
             <table>
                 <thead>
@@ -187,7 +166,6 @@
                         <th>Student</th>
                         <th>Roll No</th>
                         <th>Section</th>
-                        <th>Category</th>
                         <th>File</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -199,7 +177,6 @@
                         <td><strong>{{ cert["student_name"] }}</strong></td>
                         <td style="color: var(--gray);">{{ cert["roll_no"] }}</td>
                         <td>{{ cert["section"] }}</td>
-                        <td>{{ cert["category"] or "—" }}</td>
                         <td><a href="/uploads/{{ cert['file_name'] }}" class="file-link" target="_blank">📄 {{ cert["file_name"] }}</a></td>
                         <td>
                             {% if cert["status"] == "Pending" %}

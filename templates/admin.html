@@ -19,6 +19,7 @@
             min-height: 100vh;
         }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
             background: rgba(10,18,35,0.95);
@@ -88,6 +89,7 @@
             border-radius: 16px; overflow: hidden;
         }
 
+        /* TABLE */
         table { width: 100%; border-collapse: collapse; }
         th {
             padding: 12px 16px; text-align: left;
@@ -101,12 +103,15 @@
         tr:hover td { background: rgba(255,255,255,0.02); }
         .empty-row td { color: var(--gray); text-align: center; padding: 32px; }
 
+        /* BADGES */
         .badge {
             display: inline-block; padding: 3px 10px;
             border-radius: 20px; font-size: 12px; font-weight: 600;
         }
         .badge-section { background: rgba(200,168,75,0.15); color: var(--accent); border: 1px solid rgba(200,168,75,0.3); }
         .badge-dept { background: rgba(100,160,255,0.1); color: #7eb8f7; border: 1px solid rgba(100,160,255,0.2); }
+
+        /* INLINE FORM IN TABLE */
         .approve-form { display: flex; align-items: center; gap: 8px; }
         .section-input {
             padding: 7px 10px; background: rgba(255,255,255,0.06);
@@ -143,6 +148,7 @@
         }
         .btn-delete:hover { background: rgba(192,57,43,0.2); }
 
+        /* STATS ROW */
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
         .stat-card {
             background: var(--card-bg); border: 1px solid var(--border);
@@ -151,16 +157,7 @@
         .stat-label { font-size: 11px; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
         .stat-value { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--white); }
         .stat-accent { color: var(--accent); }
-    
-    /* Graph styles */
-    .category-bars{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding:16px 16px 10px 16px;}
-    .category-bar{min-width:160px;flex:1;max-width:220px;}
-    .category-bar-rail{height:180px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(200,168,75,0.18);display:flex;align-items:flex-end;justify-content:center;}
-    .category-bar-fill{width:56px;border-radius:12px;background:linear-gradient(135deg, rgba(200,168,75,0.95), rgba(232,201,109,0.95));box-shadow:0 10px 30px rgba(200,168,75,0.25);}
-    .category-bar-label{margin-top:10px;font-size:13px;font-weight:800;color:var(--accent);}
-    .category-bar-sub{font-size:12px;color:var(--gray);margin-top:2px;}
-    .empty-state{color:var(--gray);text-align:center;padding:28px;}
-</style>
+    </style>
 </head>
 <body>
 
@@ -204,32 +201,7 @@
         </div>
     </div>
 
-    <div class="section" id="category-graph">
-        <div class="section-title">Top Certificate Categories</div>
-
-        <div class="card">
-            {% if category_counts %}
-                <div class="category-bars">
-                    {% set maxv = (category_counts|map(attribute='count')|max) if (category_counts|length > 0) else 1 %}
-                    {% for row in category_counts %}
-                        {% set val = row['count'] %}
-                        <div class="category-bar">
-                            <div class="category-bar-rail">
-                                <div class="category-bar-fill" style="height: {{ (val*140/maxv) if maxv else 0 }}px;"></div>
-                            </div>
-                            <div class="category-bar-label">{{ row['category'] }}</div>
-                            <div class="category-bar-sub">{{ row['count'] }} certificates</div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">No certificates uploaded yet.</div>
-            {% endif %}
-        </div>
-    </div>
-
-
-
+    <!-- ALL STUDENTS -->
     <div class="section" id="students">
         <div class="section-title">All Students</div>
         <div class="card">
@@ -303,6 +275,7 @@
         </div>
     </div>
 
+    <!-- PENDING STUDENTS -->
     <div class="section" id="pending">
         <div class="section-title">Pending Students</div>
         <div class="card">
@@ -337,5 +310,6 @@
         </div>
     </div>
 </div>
+
 </body>
 </html>
