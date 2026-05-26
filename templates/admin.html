@@ -195,6 +195,31 @@
         </div>
     </div>
 
+    <div class="section" id="category-graph">
+        <div class="section-title">Top Certificate Categories</div>
+
+        <div class="card">
+            {% if category_counts %}
+                <div style="padding:16px 16px 8px 16px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                    {% set maxv = (category_counts|map(attribute='count')|max) if (category_counts|length > 0) else 1 %}
+                    {% for row in category_counts %}
+                        {% set val = row['count'] %}
+                        <div style="min-width:140px; flex:1; max-width:200px;">
+<div style="height:180px; display:flex; align-items:flex-end; justify-content:center; gap:8px;">
+                                    <div style="width:56px; border-radius:12px; background: linear-gradient(135deg, rgba(200,168,75,0.95), rgba(232,201,109,0.95)); height: {{ (val*180/maxv) if maxv else 0 }}px; box-shadow: 0 10px 30px rgba(200,168,75,0.25);"></div>
+                                </div>
+                            <div style="margin-top:10px; font-size:13px; font-weight:700; color: var(--accent);">{{ row['category'] }}</div>
+                            <div style="font-size:12px; color: var(--gray); margin-top:2px;">{{ row['count'] }} certificates</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="color: var(--gray); text-align:center; padding:28px;">No certificates uploaded yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+
     <div class="section" id="students">
         <div class="section-title">All Students</div>
         <div class="card">
