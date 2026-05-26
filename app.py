@@ -62,6 +62,15 @@ def get_db():
         ")"
     )
 
+    # One-time migration for optional column used by UI
+    conn.execute("CREATE TABLE IF NOT EXISTS certificates_event_note_dummy (x INTEGER)")
+    try:
+        conn.execute("ALTER TABLE certificates ADD COLUMN event_note TEXT")
+    except sqlite3.OperationalError:
+        # column already exists (or old SQLite can't add) -> ignore
+        pass
+
+
     # Seed default admin (for development/demo)
     conn.execute(
         "INSERT OR IGNORE INTO users (username, password, role, approved, section) VALUES (?, ?, ?, ?, ?)",
@@ -338,11 +347,24 @@ def student():
                 if not category:
                     category = "Certification"
 
+                event_note = request.form.get("event_note")
+                if not event_note:
+                    event_note = None
+
+                # Ensure DB column exists (event_note) without breaking old DBs
+                # (SQLite ALTER TABLE is safe for one-time migration)
                 conn.execute(
-                    "INSERT INTO certificates (student_name, roll_no, section, category, file_name, status) VALUES (?, ?, ?, ?, ?, ?)",
-                    (student_data["name"], roll, student_data["section"], category, filename, "Pending")
+                    "ALTER TABLE certificates ADD COLUMN event_note TEXT"
+                )
+                event_note_saved = event_note
+
+                # INSERT
+                conn.execute(
+                    "INSERT INTO certificates (student_name, roll_no, section, category, event_note, file_name, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (student_data["name"], roll, student_data["section"], category, event_note_saved, filename, "Pending")
                 )
                 conn.commit()
+
 
 
         if "achievements" in request.form:
