@@ -14,12 +14,38 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-
-# ---------------- DATABASE ----------------
 def get_db():
-    conn = sqlite3.connect("database.db",timeout=10)
+    conn = sqlite3.connect("database.db", timeout=10)
     conn.row_factory = sqlite3.Row
-    conn.execute("CREATE TABLE IF NOT EXISTS coordinators (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT UNIQUE, department TEXT, section TEXT)")
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS coordinators ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT,"
+        "username TEXT UNIQUE,"
+        "department TEXT,"
+        "section TEXT"
+        ")"
+    )
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS certificates ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "student_name TEXT,"
+        "roll_no TEXT,"
+        "section TEXT,"
+        "category TEXT,"
+        "file_name TEXT,"
+        "status TEXT"
+        ")"
+    )
+
+    # If certificates existed earlier, ensure category column is present.
+    try:
+        conn.execute("ALTER TABLE certificates ADD COLUMN category TEXT")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     return conn
 
@@ -62,8 +88,6 @@ def login():
     messages = get_flashed_messages(with_categories=True)
     return render_template("login.html", messages=messages)
 
-
-# ---------------- REGISTER STUDENT ----------------
 @app.route("/register_student", methods=["GET", "POST"])
 def register_student():
     if request.method == "POST":
@@ -117,15 +141,13 @@ def register_coordinator():
 
     return render_template("register_coordinator.html")
 
-
-# ---------------- ADMIN DASHBOARD ----------------
 @app.route("/admin")
 def admin():
     if session.get("role") != "admin":
         return redirect("/")
 
     conn = get_db()
-    students = conn.execute("SELECT * FROM students").fetchall()
+    students = conn.execute("SELECT * FROM students ").fetchall()
     pending_students = conn.execute(
         "SELECT * FROM users WHERE role='student' AND approved=0"
     ).fetchall()
@@ -140,7 +162,6 @@ def admin():
                            pending=pending_coordinators)
 
 
-# ---------------- APPROVE COORDINATOR ----------------
 @app.route("/approve_coordinator/<int:id>", methods=["POST"])
 def approve_coordinator(id):
     if session.get("role") != "admin":
@@ -156,8 +177,6 @@ def approve_coordinator(id):
     conn.close()
     return redirect("/admin")
 
-
-# ---------------- REJECT COORDINATOR ----------------
 @app.route("/reject_coordinator/<int:id>")
 def reject_coordinator(id):
     if session.get("role") != "admin":
@@ -192,7 +211,6 @@ def approve_student(id):
     return redirect("/admin")
 
 
-# ---------------- REJECT STUDENT ----------------
 @app.route("/reject_student/<int:id>")
 def reject_student(id):
     if session.get("role") != "admin":
@@ -207,23 +225,32 @@ def reject_student(id):
     conn.close()
     return redirect("/admin")
 
-
-# ---------------- COORDINATOR DASHBOARD ----------------
 @app.route("/coordinator")
 def coordinator():
     if session.get("role") != "coordinator":
         return redirect("/")
-
     section = session.get("section")
+
+    category = request.args.get("category", "")
+
     conn = get_db()
     students = conn.execute("SELECT * FROM students WHERE section=?", (section,)).fetchall()
-    certificates = conn.execute("SELECT * FROM certificates WHERE section=?", (section,)).fetchall()
+
+    if category:
+        certificates = conn.execute(
+            "SELECT * FROM certificates WHERE section=? AND category=?",
+            (section, category)
+        ).fetchall()
+    else:
+        certificates = conn.execute(
+            "SELECT * FROM certificates WHERE section=?",
+            (section,)
+        ).fetchall()
+
     conn.close()
 
     return render_template("coordinator.html", students=students, certificates=certificates)
 
-
-# ---------------- UPDATE STUDENT ----------------
 @app.route("/update_student/<int:id>", methods=["POST"])
 def update_student(id):
     if session.get("role") != "coordinator":
@@ -242,8 +269,6 @@ def update_student(id):
     conn.close()
     return redirect("/coordinator")
 
-
-# ---------------- STUDENT DASHBOARD ----------------
 @app.route("/student", methods=["GET", "POST"])
 def student():
     if session.get("role") != "student":
@@ -266,11 +291,13 @@ def student():
         if "certificate" in request.files:
             file = request.files["certificate"]
             if student_data and student_data["section"] and file and file.filename != "":
+                category = request.form.get("category", "Certification")
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 conn.execute(
-                    "INSERT INTO certificates (student_name, roll_no, section, file_name, status) VALUES (?, ?, ?, ?, ?)",
-                    (student_data["name"], roll, student_data["section"], filename, "Pending")
+                    "INSERT INTO certificates (student_name, roll_no, section, category, file_name, status) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (student_data["name"], roll, student_data["section"], category, filename, "Pending")
                 )
                 conn.commit()
 
@@ -286,7 +313,6 @@ def student():
                            university="Graphic Era Hill University")
 
 
-# ---------------- APPROVE CERTIFICATE ----------------
 @app.route("/approve/<int:id>")
 def approve(id):
     if session.get("role") != "coordinator":
@@ -298,8 +324,6 @@ def approve(id):
     conn.close()
     return redirect("/coordinator")
 
-
-# ---------------- REJECT CERTIFICATE ----------------
 @app.route("/reject/<int:id>")
 def reject(id):
     if session.get("role") != "coordinator":
@@ -312,7 +336,6 @@ def reject(id):
     return redirect("/coordinator")
 
 
-# ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
     session.clear()

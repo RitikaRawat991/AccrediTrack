@@ -1,0 +1,3 @@
+/* Common UI helpers (kept minimal since templates currently use inline CSS) */
+:root{--navy:#0f1f3d;--accent:#c8a84b;--accent-light:#e8c96d;--gray:#8a8f9e;--border:rgba(255,255,255,.08);}
+

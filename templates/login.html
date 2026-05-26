@@ -262,9 +262,11 @@
             {% endif %}
         {% endwith %}
 
+        {# Optional legacy error block; app.py uses flash messages already #}
         {% if error %}
             <div class="flash-message flash-error">{{ error }}</div>
         {% endif %}
+
 
         <form method="POST">
             <div class="form-group">

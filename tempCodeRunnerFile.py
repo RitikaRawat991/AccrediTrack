@@ -134,8 +134,6 @@ def admin():
                            students=students,
                            pending_students=pending_students)
 
-
-# ---------------- APPROVE STUDENT ----------------
 @app.route("/approve_student/<int:id>", methods=["POST"])
 def approve_student(id):
 
