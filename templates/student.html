@@ -248,12 +248,30 @@
             <form method="POST" enctype="multipart/form-data" style="margin-bottom: 20px;">
                 <div class="upload-area">
                     <div class="file-input-wrapper">
+                        <div class="file-input-label">📚 Category</div>
+                        <select name="category" required style="padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;">
+                            <option value="Research">Research</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Hackathon">Hackathon</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Certification">Certification</option>
+                            <option value="Seminar">Seminar</option>
+                            <option value="Volunteer Work">Volunteer Work</option>
+                            <option value="Training">Training</option>
+                        </select>
+                    </div>
+
+                    <div class="file-input-wrapper">
                         <div class="file-input-label">📄 Choose Certificate</div>
                         <input type="file" name="certificate" required>
                     </div>
+
                     <button type="submit" class="btn-upload">Upload Certificate</button>
                 </div>
             </form>
+
             <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 16px;">
             {% endif %}
 

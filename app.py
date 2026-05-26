@@ -17,11 +17,61 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # ---------------- DATABASE ----------------
 def get_db():
-    conn = sqlite3.connect("database.db",timeout=10)
+    conn = sqlite3.connect("database.db", timeout=10)
     conn.row_factory = sqlite3.Row
-    conn.execute("CREATE TABLE IF NOT EXISTS coordinators (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT UNIQUE, department TEXT, section TEXT)")
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS users ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "username TEXT UNIQUE,"
+        "password TEXT,"
+        "role TEXT,"
+        "approved INTEGER DEFAULT 0,"
+        "section TEXT"
+        ")"
+    )
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS students ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT,"
+        "roll_no TEXT UNIQUE,"
+        "department TEXT,"
+        "semester REAL,"
+        "cgpa REAL,"
+        "attendance REAL,"
+        "section TEXT,"
+        "profile_pic TEXT,"
+        "achievements TEXT"
+        ")"
+    )
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS coordinators (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT UNIQUE, department TEXT, section TEXT)"
+    )
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS certificates ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "student_name TEXT,"
+        "roll_no TEXT,"
+        "section TEXT,"
+        "category TEXT,"
+        "file_name TEXT,"
+        "status TEXT"
+        ")"
+    )
+
+    # Seed default admin (for development/demo)
+    conn.execute(
+        "INSERT OR IGNORE INTO users (username, password, role, approved, section) VALUES (?, ?, ?, ?, ?)",
+        ("admin", "admin123", "admin", 1, None),
+    )
+
     conn.commit()
     return conn
+
+
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -125,6 +175,7 @@ def admin():
         return redirect("/")
 
     conn = get_db()
+
     students = conn.execute("SELECT * FROM students").fetchall()
     pending_students = conn.execute(
         "SELECT * FROM users WHERE role='student' AND approved=0"
@@ -132,12 +183,26 @@ def admin():
     pending_coordinators = conn.execute(
         "SELECT * FROM users WHERE role='coordinator' AND approved=0"
     ).fetchall()
+
+    category_counts_rows = conn.execute(
+        "SELECT category, COUNT(*) as total FROM certificates WHERE status='Approved' GROUP BY category"
+    ).fetchall()
+
+    # Convert to plain list for template
+    category_counts = [{"category": row["category"], "total": row["total"]} for row in category_counts_rows]
+
     conn.close()
 
-    return render_template("admin.html",
-                           students=students,
-                           pending_students=pending_students,
-                           pending=pending_coordinators)
+    return render_template(
+        "admin.html",
+        students=students,
+        pending_students=pending_students,
+        pending=pending_coordinators,
+        category_counts=category_counts,
+    )
+
+
+
 
 
 # ---------------- APPROVE COORDINATOR ----------------
@@ -268,11 +333,17 @@ def student():
             if student_data and student_data["section"] and file and file.filename != "":
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+                category = request.form.get("category")
+                if not category:
+                    category = "Certification"
+
                 conn.execute(
-                    "INSERT INTO certificates (student_name, roll_no, section, file_name, status) VALUES (?, ?, ?, ?, ?)",
-                    (student_data["name"], roll, student_data["section"], filename, "Pending")
+                    "INSERT INTO certificates (student_name, roll_no, section, category, file_name, status) VALUES (?, ?, ?, ?, ?, ?)",
+                    (student_data["name"], roll, student_data["section"], category, filename, "Pending")
                 )
                 conn.commit()
+
 
         if "achievements" in request.form:
             achievements = request.form["achievements"]

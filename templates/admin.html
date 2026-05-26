@@ -201,6 +201,32 @@
         </div>
     </div>
 
+    <!-- CATEGORY GRAPH (Approved only) -->
+    <div class="section" id="category-graph">
+        <div class="section-title">Approved Certificates by Category</div>
+        <div class="card" style="padding: 16px;">
+            {% if category_counts and category_counts|length > 0 %}
+                <div style="display:grid; grid-template-columns: 1fr; gap: 10px;">
+                    {% for item in category_counts %}
+                        {% set pct = (item.total / (category_counts|map(attribute='total')|list|sum)) * 100 if (category_counts|length > 0) else 0 %}
+                        <div style="display:flex; align-items:center; gap: 12px;">
+                            <div style="width: 210px; font-weight: 700; font-size: 13px; color: var(--white);">
+                                {{ item.category or "—" }}
+                            </div>
+                            <div style="flex:1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow:hidden; height: 16px;">
+                                <div style="height:100%; width: {{ pct }}%; background: linear-gradient(135deg, var(--accent), var(--accent-light));"></div>
+                            </div>
+                            <div style="width: 60px; text-align:right; font-weight: 800; color: var(--accent);">{{ item.total }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-row" style="padding: 26px 12px;">No approved certificates yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+
     <!-- ALL STUDENTS -->
     <div class="section" id="students">
         <div class="section-title">All Students</div>
